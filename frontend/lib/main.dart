@@ -2289,16 +2289,14 @@ class MentorCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        minVerticalPadding: 12,
-        dense: true,
         leading: const CircleAvatar(child: Icon(Icons.school)),
         title: Text(mentor['name'] ?? ''),
         subtitle:
             Text('${mentor['expertise'] ?? ''}\n${mentor['email'] ?? ''}'),
         isThreeLine: true,
         trailing: SizedBox(
-          width: 44,
-          child: Column(
+          width: 76,
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
