@@ -61,7 +61,8 @@ class Api {
     token = prefs.getString('token');
   }
 
-  static Future<void> saveAuth(String authToken, Map<String, dynamic> user) async {
+  static Future<void> saveAuth(
+      String authToken, Map<String, dynamic> user) async {
     token = authToken;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', authToken);
@@ -85,7 +86,9 @@ class Api {
   static dynamic _decode(http.Response response) {
     final body = response.body.isEmpty ? null : jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) return body;
-    final msg = body is Map && body['detail'] != null ? body['detail'].toString() : 'Request failed';
+    final msg = body is Map && body['detail'] != null
+        ? body['detail'].toString()
+        : 'Request failed';
     throw Exception(msg);
   }
 
@@ -93,12 +96,16 @@ class Api {
         await http.get(Uri.parse('$apiBase$path'), headers: headers),
       );
 
-  static Future<dynamic> post(String path, Map<String, dynamic> data) async => _decode(
-        await http.post(Uri.parse('$apiBase$path'), headers: headers, body: jsonEncode(data)),
+  static Future<dynamic> post(String path, Map<String, dynamic> data) async =>
+      _decode(
+        await http.post(Uri.parse('$apiBase$path'),
+            headers: headers, body: jsonEncode(data)),
       );
 
-  static Future<dynamic> put(String path, Map<String, dynamic> data) async => _decode(
-        await http.put(Uri.parse('$apiBase$path'), headers: headers, body: jsonEncode(data)),
+  static Future<dynamic> put(String path, Map<String, dynamic> data) async =>
+      _decode(
+        await http.put(Uri.parse('$apiBase$path'),
+            headers: headers, body: jsonEncode(data)),
       );
 
   static Future<dynamic> delete(String path) async => _decode(
@@ -107,9 +114,11 @@ class Api {
 
   static Future<dynamic> uploadProfilePhoto(XFile image) async {
     final bytes = await image.readAsBytes();
-    final req = http.MultipartRequest('POST', Uri.parse('$apiBase/profile/photo'));
+    final req =
+        http.MultipartRequest('POST', Uri.parse('$apiBase/profile/photo'));
     if (token != null) req.headers['Authorization'] = 'Bearer $token';
-    req.files.add(http.MultipartFile.fromBytes('file', bytes, filename: image.name));
+    req.files
+        .add(http.MultipartFile.fromBytes('file', bytes, filename: image.name));
     final res = await req.send();
     return _decode(await http.Response.fromStream(res));
   }
@@ -135,7 +144,9 @@ String? emailValidator(String? value) {
 
 String? phoneValidator(String? value) {
   if (value == null || value.trim().isEmpty) return 'Phone number is required';
-  return RegExp(r'^[0-9+()\-\s]{7,20}$').hasMatch(value.trim()) ? null : 'Enter a valid phone number';
+  return RegExp(r'^[0-9+()\-\s]{7,20}$').hasMatch(value.trim())
+      ? null
+      : 'Enter a valid phone number';
 }
 
 class SplashPage extends StatelessWidget {
@@ -166,7 +177,10 @@ class SplashPage extends StatelessWidget {
                 children: [
                   const Text(
                     'SheRise',
-                    style: TextStyle(fontSize: 54, fontWeight: FontWeight.w700, color: AppColors.purpleDark),
+                    style: TextStyle(
+                        fontSize: 54,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.purpleDark),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -178,19 +192,26 @@ class SplashPage extends StatelessWidget {
                     onTap: () async {
                       await Api.loadToken();
                       if (!context.mounted) return;
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthGatePage()));
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const AuthGatePage()));
                     },
                     child: Container(
                       width: 280,
                       height: 58,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        gradient: const LinearGradient(colors: [Color(0xFFC113A0), Color(0xFF3115A9)]),
+                        gradient: const LinearGradient(
+                            colors: [Color(0xFFC113A0), Color(0xFF3115A9)]),
                       ),
                       alignment: Alignment.center,
                       child: const Text(
                         'continue',
-                        style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500),
                       ),
                     ),
                   ),
@@ -272,7 +293,11 @@ class AuthScaffold extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Colors.white, const Color(0xFFFFF4FB), Colors.white.withOpacity(0.96)],
+                    colors: [
+                      Colors.white,
+                      const Color(0xFFFFF4FB),
+                      Colors.white.withOpacity(0.96)
+                    ],
                   ),
                 ),
               ),
@@ -285,7 +310,8 @@ class AuthScaffold extends StatelessWidget {
                 height: 160,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: RadialGradient(colors: [Color(0xFFFFB2DA), Colors.transparent]),
+                  gradient: RadialGradient(
+                      colors: [Color(0xFFFFB2DA), Colors.transparent]),
                 ),
               ),
             ),
@@ -319,11 +345,14 @@ class _LoginPageState extends State<LoginPage> {
         'email': emailController.text.trim(),
         'password': passwordController.text,
       });
-      await Api.saveAuth(res['access_token'], Map<String, dynamic>.from(res['user']));
+      await Api.saveAuth(
+          res['access_token'], Map<String, dynamic>.from(res['user']));
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -343,17 +372,27 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 48),
-                  const Text('Login', style: TextStyle(fontSize: 46, fontWeight: FontWeight.bold)),
+                  const Text('Login',
+                      style:
+                          TextStyle(fontSize: 46, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   Row(
                     children: [
                       Text(
                         'Don’t have an account? ',
-                        style: TextStyle(fontSize: 18, color: Colors.grey.shade700),
+                        style: TextStyle(
+                            fontSize: 18, color: Colors.grey.shade700),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
-                        child: const Text('sign up', style: TextStyle(fontSize: 18, color: AppColors.purple, fontWeight: FontWeight.bold)),
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const RegisterPage())),
+                        child: const Text('sign up',
+                            style: TextStyle(
+                                fontSize: 18,
+                                color: AppColors.purple,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -370,7 +409,10 @@ class _LoginPageState extends State<LoginPage> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     obscureText: obscure,
                     validator: (value) => requiredValidator(value, min: 6),
-                    suffix: TextButton(onPressed: () => showMsg(context, 'Forgot password flow can be added next.'), child: const Text('FORGOT')),
+                    suffix: TextButton(
+                        onPressed: () => showMsg(
+                            context, 'Forgot password flow can be added next.'),
+                        child: const Text('FORGOT')),
                   ),
                   const SizedBox(height: 34),
                   Align(
@@ -382,17 +424,27 @@ class _LoginPageState extends State<LoginPage> {
                         height: 74,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(36),
-                          gradient: const LinearGradient(colors: [Color(0xFFE78AF0), Color(0xFF6F236E)]),
+                          gradient: const LinearGradient(
+                              colors: [Color(0xFFE78AF0), Color(0xFF6F236E)]),
                         ),
                         alignment: Alignment.center,
                         child: loading
-                            ? const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(color: Colors.white))
+                            ? const SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white))
                             : const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text('Sign In', style: TextStyle(fontSize: 22, color: Colors.black, fontWeight: FontWeight.w600)),
+                                  Text('Sign In',
+                                      style: TextStyle(
+                                          fontSize: 22,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w600)),
                                   SizedBox(width: 8),
-                                  Icon(Icons.arrow_forward, color: Colors.black),
+                                  Icon(Icons.arrow_forward,
+                                      color: Colors.black),
                                 ],
                               ),
                       ),
@@ -431,11 +483,14 @@ class _RegisterPageState extends State<RegisterPage> {
         'email': emailController.text.trim(),
         'password': passwordController.text.trim(),
       });
-      await Api.saveAuth(res['access_token'], Map<String, dynamic>.from(res['user']));
+      await Api.saveAuth(
+          res['access_token'], Map<String, dynamic>.from(res['user']));
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -455,23 +510,41 @@ class _RegisterPageState extends State<RegisterPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 30),
-                  const Text('Create Account', style: TextStyle(fontSize: 46, fontWeight: FontWeight.bold)),
+                  const Text('Create Account',
+                      style:
+                          TextStyle(fontSize: 46, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 18),
                   Row(
                     children: [
-                      Text('Already have an account? ', style: TextStyle(fontSize: 18, color: Colors.grey.shade700)),
+                      Text('Already have an account? ',
+                          style: TextStyle(
+                              fontSize: 18, color: Colors.grey.shade700)),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Text('Sign In', style: TextStyle(fontSize: 18, color: AppColors.purple, fontWeight: FontWeight.bold)),
+                        child: const Text('Sign In',
+                            style: TextStyle(
+                                fontSize: 18,
+                                color: AppColors.purple,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 34),
-                  RoundedField(controller: nameController, hintText: 'Name', validator: requiredValidator),
+                  RoundedField(
+                      controller: nameController,
+                      hintText: 'Name',
+                      validator: requiredValidator),
                   const SizedBox(height: 26),
-                  RoundedField(controller: emailController, hintText: 'Email or phone', validator: emailValidator),
+                  RoundedField(
+                      controller: emailController,
+                      hintText: 'Email or phone',
+                      validator: emailValidator),
                   const SizedBox(height: 26),
-                  RoundedField(controller: passwordController, hintText: 'Password', obscureText: true, validator: (value) => requiredValidator(value, min: 6)),
+                  RoundedField(
+                      controller: passwordController,
+                      hintText: 'Password',
+                      obscureText: true,
+                      validator: (value) => requiredValidator(value, min: 6)),
                   const SizedBox(height: 46),
                   Align(
                     alignment: Alignment.centerRight,
@@ -482,17 +555,27 @@ class _RegisterPageState extends State<RegisterPage> {
                         height: 74,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(36),
-                          gradient: const LinearGradient(colors: [Color(0xFFE78AF0), Color(0xFF6F236E)]),
+                          gradient: const LinearGradient(
+                              colors: [Color(0xFFE78AF0), Color(0xFF6F236E)]),
                         ),
                         alignment: Alignment.center,
                         child: loading
-                            ? const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(color: Colors.white))
+                            ? const SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white))
                             : const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text('Sign Up', style: TextStyle(fontSize: 22, color: Colors.black, fontWeight: FontWeight.w600)),
+                                  Text('Sign Up',
+                                      style: TextStyle(
+                                          fontSize: 22,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w600)),
                                   SizedBox(width: 6),
-                                  Icon(Icons.arrow_forward, color: Colors.black),
+                                  Icon(Icons.arrow_forward,
+                                      color: Colors.black),
                                 ],
                               ),
                       ),
@@ -538,7 +621,8 @@ class RoundedField extends StatelessWidget {
         hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 17),
         filled: true,
         fillColor: Colors.white.withOpacity(0.9),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(28),
           borderSide: const BorderSide(color: Colors.black54),
@@ -567,7 +651,13 @@ class _MainShellState extends State<MainShell> {
   int index = 0;
   Map<String, dynamic>? currentUser;
 
-  final titles = const ['Home', 'Safety & Emergency', 'Career & Skills', 'Community', 'Legal Help'];
+  final titles = const [
+    'Home',
+    'Safety & Emergency',
+    'Career & Skills',
+    'Community',
+    'Legal Help'
+  ];
 
   @override
   void initState() {
@@ -583,7 +673,9 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomePage(onNavigate: (i) => setState(() => index = i), currentUser: currentUser),
+      HomePage(
+          onNavigate: (i) => setState(() => index = i),
+          currentUser: currentUser),
       const SafetyPage(),
       const CareerPage(),
       const CommunityPage(),
@@ -596,9 +688,11 @@ class _MainShellState extends State<MainShell> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const CircleAvatar(radius: 14, child: Icon(Icons.person, size: 16)),
+            icon: const CircleAvatar(
+                radius: 14, child: Icon(Icons.person, size: 16)),
             onPressed: () async {
-              await Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePage()));
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ProfilePage()));
               loadUser();
             },
           ),
@@ -607,7 +701,10 @@ class _MainShellState extends State<MainShell> {
             onPressed: () async {
               await Api.logout();
               if (!mounted) return;
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginPage()), (_) => false);
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                  (_) => false);
             },
           ),
         ],
@@ -619,7 +716,10 @@ class _MainShellState extends State<MainShell> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))
+          ],
         ),
         child: NavigationBar(
           backgroundColor: Colors.transparent,
@@ -627,11 +727,26 @@ class _MainShellState extends State<MainShell> {
           selectedIndex: index,
           onDestinationSelected: (value) => setState(() => index = value),
           destinations: const [
-            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-            NavigationDestination(icon: Icon(Icons.verified_user_outlined), selectedIcon: Icon(Icons.verified_user), label: 'Safety'),
-            NavigationDestination(icon: Icon(Icons.cast_for_education_outlined), selectedIcon: Icon(Icons.cast_for_education), label: 'Career'),
-            NavigationDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups), label: 'Community'),
-            NavigationDestination(icon: Icon(Icons.balance_outlined), selectedIcon: Icon(Icons.balance), label: 'Legal'),
+            NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Home'),
+            NavigationDestination(
+                icon: Icon(Icons.verified_user_outlined),
+                selectedIcon: Icon(Icons.verified_user),
+                label: 'Safety'),
+            NavigationDestination(
+                icon: Icon(Icons.cast_for_education_outlined),
+                selectedIcon: Icon(Icons.cast_for_education),
+                label: 'Career'),
+            NavigationDestination(
+                icon: Icon(Icons.groups_outlined),
+                selectedIcon: Icon(Icons.groups),
+                label: 'Community'),
+            NavigationDestination(
+                icon: Icon(Icons.balance_outlined),
+                selectedIcon: Icon(Icons.balance),
+                label: 'Legal'),
           ],
         ),
       ),
@@ -642,7 +757,8 @@ class _MainShellState extends State<MainShell> {
 class HomePage extends StatelessWidget {
   final void Function(int index) onNavigate;
   final Map<String, dynamic>? currentUser;
-  const HomePage({super.key, required this.onNavigate, required this.currentUser});
+  const HomePage(
+      {super.key, required this.onNavigate, required this.currentUser});
 
   @override
   Widget build(BuildContext context) {
@@ -655,14 +771,18 @@ class HomePage extends StatelessWidget {
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30),
-              gradient: const LinearGradient(colors: [Color(0xFFA600D8), Color(0xFF8B5DDC)]),
+              gradient: const LinearGradient(
+                  colors: [Color(0xFFA600D8), Color(0xFF8B5DDC)]),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Hello ${currentUser?['name'] ?? 'SheRise User'}',
-                  style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 28,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -672,7 +792,9 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 16),
                 Container(
                   height: 14,
-                  decoration: BoxDecoration(color: Colors.white54, borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(
+                      color: Colors.white54,
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ],
             ),
@@ -682,10 +804,26 @@ class HomePage extends StatelessWidget {
             spacing: 24,
             runSpacing: 24,
             children: [
-              HomeQuickCard(title: 'SOS Alert', icon: Icons.sos, color: AppColors.homeCardPink, onTap: () => onNavigate(1)),
-              HomeQuickCard(title: 'Courses', icon: Icons.cast_for_education_outlined, color: AppColors.homeCardPurple, onTap: () => onNavigate(2)),
-              HomeQuickCard(title: 'Community', icon: Icons.groups_outlined, color: AppColors.homeCardLilac, onTap: () => onNavigate(3)),
-              HomeQuickCard(title: 'Legal Help', icon: Icons.balance_outlined, color: AppColors.homeCardMint, onTap: () => onNavigate(4)),
+              HomeQuickCard(
+                  title: 'SOS Alert',
+                  icon: Icons.sos,
+                  color: AppColors.homeCardPink,
+                  onTap: () => onNavigate(1)),
+              HomeQuickCard(
+                  title: 'Courses',
+                  icon: Icons.cast_for_education_outlined,
+                  color: AppColors.homeCardPurple,
+                  onTap: () => onNavigate(2)),
+              HomeQuickCard(
+                  title: 'Community',
+                  icon: Icons.groups_outlined,
+                  color: AppColors.homeCardLilac,
+                  onTap: () => onNavigate(3)),
+              HomeQuickCard(
+                  title: 'Legal Help',
+                  icon: Icons.balance_outlined,
+                  color: AppColors.homeCardMint,
+                  onTap: () => onNavigate(4)),
             ],
           ),
         ],
@@ -699,7 +837,12 @@ class HomeQuickCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
-  const HomeQuickCard({super.key, required this.title, required this.icon, required this.color, required this.onTap});
+  const HomeQuickCard(
+      {super.key,
+      required this.title,
+      required this.icon,
+      required this.color,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -711,11 +854,15 @@ class HomeQuickCard extends StatelessWidget {
           children: [
             Container(
               height: 150,
-              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(24)),
+              decoration: BoxDecoration(
+                  color: color, borderRadius: BorderRadius.circular(24)),
               child: Center(child: Icon(icon, size: 72, color: Colors.black54)),
             ),
             const SizedBox(height: 12),
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+            Text(title,
+                textAlign: TextAlign.center,
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -746,21 +893,24 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       profile = Map<String, dynamic>.from(await Api.get('/profile'));
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => loading = false);
     }
   }
 
   Future<void> pickUpload() async {
-    final img = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80, maxWidth: 900);
+    final img = await picker.pickImage(
+        source: ImageSource.gallery, imageQuality: 80, maxWidth: 900);
     if (img == null) return;
     try {
       await Api.uploadProfilePhoto(img);
       await load();
       if (mounted) showMsg(context, 'Profile picture updated');
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -770,13 +920,15 @@ class _ProfilePageState extends State<ProfilePage> {
       await load();
       if (mounted) showMsg(context, 'Profile picture removed');
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (loading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final p = profile ?? {};
     return Scaffold(
       backgroundColor: AppColors.softPink,
@@ -790,24 +942,44 @@ class _ProfilePageState extends State<ProfilePage> {
               child: CircleAvatar(
                 radius: 58,
                 backgroundColor: Colors.white,
-                backgroundImage: p['profile_photo'] != null ? NetworkImage(p['profile_photo']) : null,
-                child: p['profile_photo'] == null ? const Icon(Icons.person, size: 62, color: AppColors.purple) : null,
+                backgroundImage: p['profile_photo'] != null
+                    ? NetworkImage(p['profile_photo'])
+                    : null,
+                child: p['profile_photo'] == null
+                    ? const Icon(Icons.person,
+                        size: 62, color: AppColors.purple)
+                    : null,
               ),
             ),
             const SizedBox(height: 14),
-            Center(child: Text(p['full_name'] ?? '', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
-            Center(child: Text(p['occupation'] ?? '', style: const TextStyle(color: Colors.black54, fontSize: 16))),
+            Center(
+                child: Text(p['full_name'] ?? '',
+                    style: const TextStyle(
+                        fontSize: 28, fontWeight: FontWeight.bold))),
+            Center(
+                child: Text(p['occupation'] ?? '',
+                    style:
+                        const TextStyle(color: Colors.black54, fontSize: 16))),
             const SizedBox(height: 18),
             Wrap(
               alignment: WrapAlignment.center,
               spacing: 8,
               runSpacing: 8,
               children: [
-                FilledButton.icon(onPressed: pickUpload, icon: const Icon(Icons.add_a_photo), label: const Text('Add / Update Photo')),
-                OutlinedButton.icon(onPressed: p['profile_photo'] == null ? null : deletePhoto, icon: const Icon(Icons.delete_outline), label: const Text('Delete Photo')),
+                FilledButton.icon(
+                    onPressed: pickUpload,
+                    icon: const Icon(Icons.add_a_photo),
+                    label: const Text('Add / Update Photo')),
+                OutlinedButton.icon(
+                    onPressed: p['profile_photo'] == null ? null : deletePhoto,
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Delete Photo')),
                 FilledButton.tonalIcon(
                   onPressed: () async {
-                    await Navigator.push(context, MaterialPageRoute(builder: (_) => EditProfilePage(initial: p)));
+                    await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => EditProfilePage(initial: p)));
                     load();
                   },
                   icon: const Icon(Icons.edit),
@@ -816,10 +988,18 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
             const SizedBox(height: 20),
-            InfoCard(icon: Icons.phone, title: 'Phone', value: p['phone'] ?? ''),
-            InfoCard(icon: Icons.location_on_outlined, title: 'Address', value: p['address'] ?? ''),
-            InfoCard(icon: Icons.badge_outlined, title: 'Occupation', value: p['occupation'] ?? ''),
-            InfoCard(icon: Icons.info_outline, title: 'Bio', value: p['bio'] ?? ''),
+            InfoCard(
+                icon: Icons.phone, title: 'Phone', value: p['phone'] ?? ''),
+            InfoCard(
+                icon: Icons.location_on_outlined,
+                title: 'Address',
+                value: p['address'] ?? ''),
+            InfoCard(
+                icon: Icons.badge_outlined,
+                title: 'Occupation',
+                value: p['occupation'] ?? ''),
+            InfoCard(
+                icon: Icons.info_outline, title: 'Bio', value: p['bio'] ?? ''),
           ],
         ),
       ),
@@ -837,11 +1017,16 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final formKey = GlobalKey<FormState>();
-  late final nameController = TextEditingController(text: widget.initial['full_name'] ?? '');
-  late final phoneController = TextEditingController(text: widget.initial['phone'] ?? '');
-  late final addressController = TextEditingController(text: widget.initial['address'] ?? '');
-  late final occupationController = TextEditingController(text: widget.initial['occupation'] ?? '');
-  late final bioController = TextEditingController(text: widget.initial['bio'] ?? '');
+  late final nameController =
+      TextEditingController(text: widget.initial['full_name'] ?? '');
+  late final phoneController =
+      TextEditingController(text: widget.initial['phone'] ?? '');
+  late final addressController =
+      TextEditingController(text: widget.initial['address'] ?? '');
+  late final occupationController =
+      TextEditingController(text: widget.initial['occupation'] ?? '');
+  late final bioController =
+      TextEditingController(text: widget.initial['bio'] ?? '');
   bool saving = false;
 
   Future<void> save() async {
@@ -859,7 +1044,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       showMsg(context, 'Profile updated');
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -875,17 +1061,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
           key: formKey,
           child: Column(
             children: [
-              AppTextField(controller: nameController, label: 'Full Name', validator: requiredValidator),
-              AppTextField(controller: phoneController, label: 'Phone', validator: phoneValidator),
+              AppTextField(
+                  controller: nameController,
+                  label: 'Full Name',
+                  validator: requiredValidator),
+              AppTextField(
+                  controller: phoneController,
+                  label: 'Phone',
+                  validator: phoneValidator),
               AppTextField(controller: addressController, label: 'Address'),
-              AppTextField(controller: occupationController, label: 'Occupation'),
-              AppTextField(controller: bioController, label: 'Bio', maxLines: 4),
+              AppTextField(
+                  controller: occupationController, label: 'Occupation'),
+              AppTextField(
+                  controller: bioController, label: 'Bio', maxLines: 4),
               const SizedBox(height: 14),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: saving ? null : save,
-                  child: saving ? const CircularProgressIndicator(color: Colors.white) : const Text('Update Profile'),
+                  child: saving
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Update Profile'),
                 ),
               ),
             ],
@@ -900,7 +1096,11 @@ class InfoCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String value;
-  const InfoCard({super.key, required this.icon, required this.title, required this.value});
+  const InfoCard(
+      {super.key,
+      required this.icon,
+      required this.title,
+      required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -935,9 +1135,11 @@ class _SafetyPageState extends State<SafetyPage> {
   Future<void> loadContacts() async {
     setState(() => loading = true);
     try {
-      contacts = List<Map<String, dynamic>>.from(await Api.get('/emergency-contacts'));
+      contacts =
+          List<Map<String, dynamic>>.from(await Api.get('/emergency-contacts'));
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -948,7 +1150,8 @@ class _SafetyPageState extends State<SafetyPage> {
       await Api.post('/sos', {'message': 'I need emergency help'});
       if (mounted) showMsg(context, 'SOS alert triggered successfully');
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -957,7 +1160,8 @@ class _SafetyPageState extends State<SafetyPage> {
       await Api.delete('/emergency-contacts/$id');
       loadContacts();
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -972,17 +1176,41 @@ class _SafetyPageState extends State<SafetyPage> {
             padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
             decoration: const BoxDecoration(
               color: AppColors.redOrange,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24), topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24)),
             ),
-            child: const Text('Safety & Emergency', style: TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text('Safety & Emergency',
+                style: TextStyle(
+                    fontSize: 30,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              SafetyTopButton(color: const Color(0xFFFA8C80), icon: Icons.warning_amber_rounded, label: 'SOS Alert', onTap: triggerSos),
-              SafetyTopButton(color: const Color(0xFFA8E2F0), icon: Icons.location_on_outlined, label: 'Share\nLocation', onTap: () => showMsg(context, 'Real-time location sharing can be connected next.')),
-              SafetyTopButton(color: const Color(0xFF8FD6B0), icon: Icons.verified_user_outlined, label: 'Safety Tips', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SafetyTipsPage()))),
+              SafetyTopButton(
+                  color: const Color(0xFFFA8C80),
+                  icon: Icons.warning_amber_rounded,
+                  label: 'SOS Alert',
+                  onTap: triggerSos),
+              SafetyTopButton(
+                  color: const Color(0xFFA8E2F0),
+                  icon: Icons.location_on_outlined,
+                  label: 'Share\nLocation',
+                  onTap: () => showMsg(context,
+                      'Real-time location sharing can be connected next.')),
+              SafetyTopButton(
+                  color: const Color(0xFF8FD6B0),
+                  icon: Icons.verified_user_outlined,
+                  label: 'Safety Tips',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const SafetyTipsPage()))),
             ],
           ),
           const SizedBox(height: 18),
@@ -991,18 +1219,29 @@ class _SafetyPageState extends State<SafetyPage> {
             child: FloatingActionButton.small(
               backgroundColor: AppColors.purple,
               onPressed: () async {
-                await Navigator.push(context, MaterialPageRoute(builder: (_) => const EmergencyContactFormPage()));
+                await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const EmergencyContactFormPage()));
                 loadContacts();
               },
               child: const Icon(Icons.add, color: Colors.black),
             ),
           ),
           const SizedBox(height: 12),
-          if (loading) const Center(child: Padding(padding: EdgeInsets.all(22), child: CircularProgressIndicator())),
+          if (loading)
+            const Center(
+                child: Padding(
+                    padding: EdgeInsets.all(22),
+                    child: CircularProgressIndicator())),
           ...contacts.map((contact) => EmergencyContactCard(
                 contact: contact,
                 onEdit: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => EmergencyContactFormPage(initial: contact)));
+                  await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              EmergencyContactFormPage(initial: contact)));
                   loadContacts();
                 },
                 onDelete: () => deleteContact(contact['id']),
@@ -1010,23 +1249,38 @@ class _SafetyPageState extends State<SafetyPage> {
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(color: const Color(0xFF6ED1A0), borderRadius: BorderRadius.circular(22)),
+            decoration: BoxDecoration(
+                color: const Color(0xFF6ED1A0),
+                borderRadius: BorderRadius.circular(22)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
-                    Text('Safety Score', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w600)),
-                    Icon(Icons.verified_user_outlined, size: 42, color: Color(0xFF5FAF84)),
+                    Text('Safety Score',
+                        style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600)),
+                    Icon(Icons.verified_user_outlined,
+                        size: 42, color: Color(0xFF5FAF84)),
                   ],
                 ),
                 const SizedBox(height: 6),
-                const Text('85%', style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+                const Text('85%',
+                    style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(value: 0.85, minHeight: 8, backgroundColor: Colors.white54, color: Colors.white),
+                  child: LinearProgressIndicator(
+                      value: 0.85,
+                      minHeight: 8,
+                      backgroundColor: Colors.white54,
+                      color: Colors.white),
                 ),
               ],
             ),
@@ -1042,7 +1296,12 @@ class SafetyTopButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  const SafetyTopButton({super.key, required this.color, required this.icon, required this.label, required this.onTap});
+  const SafetyTopButton(
+      {super.key,
+      required this.color,
+      required this.icon,
+      required this.label,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1051,13 +1310,16 @@ class SafetyTopButton extends StatelessWidget {
       child: Container(
         width: 86,
         height: 86,
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(18)),
+        decoration: BoxDecoration(
+            color: color, borderRadius: BorderRadius.circular(18)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 34),
             const SizedBox(height: 6),
-            Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12.5, height: 1.0)),
+            Text(label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12.5, height: 1.0)),
           ],
         ),
       ),
@@ -1069,14 +1331,21 @@ class EmergencyContactCard extends StatelessWidget {
   final Map<String, dynamic> contact;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  const EmergencyContactCard({super.key, required this.contact, required this.onEdit, required this.onDelete});
+  const EmergencyContactCard(
+      {super.key,
+      required this.contact,
+      required this.onEdit,
+      required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.82), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black26)),
+      decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.82),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black26)),
       child: Row(
         children: [
           const Icon(Icons.add_ic_call_outlined, size: 38),
@@ -1085,16 +1354,22 @@ class EmergencyContactCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(contact['name'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text(contact['phone'] ?? '', style: const TextStyle(color: Colors.black54)),
-                Text(contact['relationship'] ?? '', style: const TextStyle(color: Colors.black45)),
+                Text(contact['name'] ?? '',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(contact['phone'] ?? '',
+                    style: const TextStyle(color: Colors.black54)),
+                Text(contact['relationship'] ?? '',
+                    style: const TextStyle(color: Colors.black45)),
               ],
             ),
           ),
           Column(
             children: [
-              IconButton(onPressed: onEdit, icon: const Icon(Icons.edit_outlined)),
-              IconButton(onPressed: onDelete, icon: const Icon(Icons.delete_outline)),
+              IconButton(
+                  onPressed: onEdit, icon: const Icon(Icons.edit_outlined)),
+              IconButton(
+                  onPressed: onDelete, icon: const Icon(Icons.delete_outline)),
             ],
           ),
         ],
@@ -1108,14 +1383,18 @@ class EmergencyContactFormPage extends StatefulWidget {
   const EmergencyContactFormPage({super.key, this.initial});
 
   @override
-  State<EmergencyContactFormPage> createState() => _EmergencyContactFormPageState();
+  State<EmergencyContactFormPage> createState() =>
+      _EmergencyContactFormPageState();
 }
 
 class _EmergencyContactFormPageState extends State<EmergencyContactFormPage> {
   final formKey = GlobalKey<FormState>();
-  late final nameController = TextEditingController(text: widget.initial?['name'] ?? '');
-  late final relationshipController = TextEditingController(text: widget.initial?['relationship'] ?? '');
-  late final phoneController = TextEditingController(text: widget.initial?['phone'] ?? '');
+  late final nameController =
+      TextEditingController(text: widget.initial?['name'] ?? '');
+  late final relationshipController =
+      TextEditingController(text: widget.initial?['relationship'] ?? '');
+  late final phoneController =
+      TextEditingController(text: widget.initial?['phone'] ?? '');
   bool isPrimary = false;
   bool saving = false;
 
@@ -1143,7 +1422,8 @@ class _EmergencyContactFormPageState extends State<EmergencyContactFormPage> {
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -1152,16 +1432,28 @@ class _EmergencyContactFormPageState extends State<EmergencyContactFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.initial == null ? 'Add Emergency Contact' : 'Update Emergency Contact')),
+      appBar: AppBar(
+          title: Text(widget.initial == null
+              ? 'Add Emergency Contact'
+              : 'Update Emergency Contact')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: formKey,
           child: Column(
             children: [
-              AppTextField(controller: nameController, label: 'Name', validator: requiredValidator),
-              AppTextField(controller: relationshipController, label: 'Relationship', validator: requiredValidator),
-              AppTextField(controller: phoneController, label: 'Phone', validator: phoneValidator),
+              AppTextField(
+                  controller: nameController,
+                  label: 'Name',
+                  validator: requiredValidator),
+              AppTextField(
+                  controller: relationshipController,
+                  label: 'Relationship',
+                  validator: requiredValidator),
+              AppTextField(
+                  controller: phoneController,
+                  label: 'Phone',
+                  validator: phoneValidator),
               SwitchListTile(
                 value: isPrimary,
                 title: const Text('Primary Contact'),
@@ -1170,7 +1462,11 @@ class _EmergencyContactFormPageState extends State<EmergencyContactFormPage> {
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton(onPressed: saving ? null : save, child: Text(widget.initial == null ? 'Create Contact' : 'Update Contact')),
+                child: FilledButton(
+                    onPressed: saving ? null : save,
+                    child: Text(widget.initial == null
+                        ? 'Create Contact'
+                        : 'Update Contact')),
               ),
             ],
           ),
@@ -1187,7 +1483,9 @@ class SafetyTipsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(backgroundColor: AppColors.safetyGreen, foregroundColor: Colors.white),
+      appBar: AppBar(
+          backgroundColor: AppColors.safetyGreen,
+          foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -1195,7 +1493,11 @@ class SafetyTipsPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 22),
             decoration: const BoxDecoration(
               color: AppColors.safetyGreen,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24), topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24)),
             ),
             child: const Center(
               child: Text(
@@ -1206,16 +1508,32 @@ class SafetyTipsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          const SafetyTipCard(icon: Icons.verified_user_outlined, title: 'Stay Connected', description: 'Always keep your phone charged and share your location with trusted contacts when going out.'),
-          const SafetyTipCard(icon: Icons.groups_outlined, title: 'Trust Your Instincts', description: 'If a situation feels wrong, remove yourself immediately. Your intuition is a powerful safety tool.'),
-          const SafetyTipCard(icon: Icons.location_on_outlined, title: 'Safe Transportation', description: 'Use verified transportation services, share trip details with friends, and sit in the back seat.'),
+          const SafetyTipCard(
+              icon: Icons.verified_user_outlined,
+              title: 'Stay Connected',
+              description:
+                  'Always keep your phone charged and share your location with trusted contacts when going out.'),
+          const SafetyTipCard(
+              icon: Icons.groups_outlined,
+              title: 'Trust Your Instincts',
+              description:
+                  'If a situation feels wrong, remove yourself immediately. Your intuition is a powerful safety tool.'),
+          const SafetyTipCard(
+              icon: Icons.location_on_outlined,
+              title: 'Safe Transportation',
+              description:
+                  'Use verified transportation services, share trip details with friends, and sit in the back seat.'),
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.deepPink, borderRadius: BorderRadius.circular(24)),
+            decoration: BoxDecoration(
+                color: AppColors.deepPink,
+                borderRadius: BorderRadius.circular(24)),
             child: Column(
               children: const [
-                Text('Important Numbers', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('Important Numbers',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 SizedBox(height: 12),
                 SafetyNumberRow(label: 'Emergency Services', number: '912'),
                 SafetyNumberRow(label: 'Women\'s Helpline', number: '199'),
@@ -1233,21 +1551,29 @@ class SafetyTipCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String description;
-  const SafetyTipCard({super.key, required this.icon, required this.title, required this.description});
+  const SafetyTipCard(
+      {super.key,
+      required this.icon,
+      required this.title,
+      required this.description});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black54)),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black54)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 38,
             height: 38,
-            decoration: BoxDecoration(color: const Color(0xFFBDECC7), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+                color: const Color(0xFFBDECC7),
+                borderRadius: BorderRadius.circular(10)),
             child: Icon(icon, size: 28),
           ),
           const SizedBox(width: 10),
@@ -1255,9 +1581,12 @@ class SafetyTipCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                Text(description, style: const TextStyle(fontSize: 16, height: 1.35)),
+                Text(description,
+                    style: const TextStyle(fontSize: 16, height: 1.35)),
               ],
             ),
           ),
@@ -1281,7 +1610,9 @@ class SafetyNumberRow extends StatelessWidget {
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(color: const Color(0xFFF79AC1), borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                  color: const Color(0xFFF79AC1),
+                  borderRadius: BorderRadius.circular(16)),
               child: Text(label, style: const TextStyle(fontSize: 16)),
             ),
           ),
@@ -1289,9 +1620,12 @@ class SafetyNumberRow extends StatelessWidget {
           Container(
             width: 90,
             padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(16)),
             alignment: Alignment.center,
-            child: Text(number, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            child: Text(number,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -1325,7 +1659,8 @@ class _CareerPageState extends State<CareerPage> {
       user = await Api.loadSavedUser();
       courses = List<Map<String, dynamic>>.from(await Api.get('/courses'));
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -1336,7 +1671,8 @@ class _CareerPageState extends State<CareerPage> {
       await Api.delete('/courses/$id');
       load();
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -1359,18 +1695,28 @@ class _CareerPageState extends State<CareerPage> {
           Container(
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [Color(0xFFD26CFF), Color(0xFFBF58E2)]),
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
+              gradient: LinearGradient(
+                  colors: [Color(0xFFD26CFF), Color(0xFFBF58E2)]),
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Career & Skills', style: TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold)),
+                const Text('Career & Skills',
+                    style: TextStyle(
+                        fontSize: 28,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 2),
-                const Text('Unlock your potential', style: TextStyle(color: Colors.white)),
+                const Text('Unlock your potential',
+                    style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 16),
                 Container(
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30)),
                   child: TextField(
                     controller: searchController,
                     onChanged: (_) => setState(() {}),
@@ -1402,25 +1748,37 @@ class _CareerPageState extends State<CareerPage> {
                 const Spacer(),
                 GestureDetector(
                   onTap: () async {
-                    await Navigator.push(context, MaterialPageRoute(builder: (_) => const CourseFormPage()));
+                    await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const CourseFormPage()));
                     load();
                   },
                   child: Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(color: AppColors.purple, borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(
+                        color: AppColors.purple,
+                        borderRadius: BorderRadius.circular(10)),
                     child: const Icon(Icons.add, color: Colors.black),
                   ),
                 ),
               ],
             ),
           ),
-          if (loading) const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
+          if (loading)
+            const Center(
+                child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator())),
           ...filtered.map((course) => CourseCard(
                 course: course,
                 canEdit: course['owner_id'] == user?['id'],
                 onEdit: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => CourseFormPage(initial: course)));
+                  await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => CourseFormPage(initial: course)));
                   load();
                 },
                 onDelete: () => deleteCourse(course['id']),
@@ -1441,7 +1799,12 @@ class CourseCard extends StatelessWidget {
   final bool canEdit;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  const CourseCard({super.key, required this.course, required this.canEdit, required this.onEdit, required this.onDelete});
+  const CourseCard(
+      {super.key,
+      required this.course,
+      required this.canEdit,
+      required this.onEdit,
+      required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -1449,31 +1812,47 @@ class CourseCard extends StatelessWidget {
     final progress = ((course['progress'] ?? 0) as num).toDouble();
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.88), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.88),
+          borderRadius: BorderRadius.circular(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20)),
                 child: imageUrl.isEmpty
-                    ? Container(height: 130, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.image, size: 40)))
+                    ? Container(
+                        height: 130,
+                        color: Colors.grey.shade300,
+                        child: const Center(child: Icon(Icons.image, size: 40)))
                     : Image.network(
                         imageUrl,
                         height: 130,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(height: 130, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.broken_image))),
+                        errorBuilder: (_, __, ___) => Container(
+                            height: 130,
+                            color: Colors.grey.shade300,
+                            child:
+                                const Center(child: Icon(Icons.broken_image))),
                       ),
               ),
               Positioned(
                 top: 10,
                 left: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.purple, borderRadius: BorderRadius.circular(12)),
-                  child: Text(progress > 0 ? 'Enrolled' : 'New', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: AppColors.purple,
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Text(progress > 0 ? 'Enrolled' : 'New',
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 12)),
                 ),
               ),
               if (canEdit)
@@ -1482,8 +1861,16 @@ class CourseCard extends StatelessWidget {
                   right: 8,
                   child: Row(
                     children: [
-                      IconButton(onPressed: onEdit, icon: const Icon(Icons.edit_outlined), style: IconButton.styleFrom(backgroundColor: Colors.white70)),
-                      IconButton(onPressed: onDelete, icon: const Icon(Icons.delete_outline), style: IconButton.styleFrom(backgroundColor: Colors.white70)),
+                      IconButton(
+                          onPressed: onEdit,
+                          icon: const Icon(Icons.edit_outlined),
+                          style: IconButton.styleFrom(
+                              backgroundColor: Colors.white70)),
+                      IconButton(
+                          onPressed: onDelete,
+                          icon: const Icon(Icons.delete_outline),
+                          style: IconButton.styleFrom(
+                              backgroundColor: Colors.white70)),
                     ],
                   ),
                 ),
@@ -1497,39 +1884,58 @@ class CourseCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(course['title'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      child: Text(course['title'] ?? '',
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: const Color(0xFFE9A5DD), borderRadius: BorderRadius.circular(12)),
-                      child: Text(course['category'] ?? '', style: const TextStyle(fontSize: 12, color: AppColors.purpleDark)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                          color: const Color(0xFFE9A5DD),
+                          borderRadius: BorderRadius.circular(12)),
+                      child: Text(course['category'] ?? '',
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.purpleDark)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(course['description'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(course['description'] ?? '',
+                    maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.person_outline, size: 16, color: Colors.black54),
+                    const Icon(Icons.person_outline,
+                        size: 16, color: Colors.black54),
                     const SizedBox(width: 4),
-                    Expanded(child: Text((course['instructor'] ?? '').toString(), style: const TextStyle(color: Colors.black54))),
-                    const Icon(Icons.access_time, size: 16, color: Colors.black54),
+                    Expanded(
+                        child: Text((course['instructor'] ?? '').toString(),
+                            style: const TextStyle(color: Colors.black54))),
+                    const Icon(Icons.access_time,
+                        size: 16, color: Colors.black54),
                     const SizedBox(width: 4),
-                    Text((course['duration'] ?? '').toString(), style: const TextStyle(color: Colors.black54)),
+                    Text((course['duration'] ?? '').toString(),
+                        style: const TextStyle(color: Colors.black54)),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    const Expanded(child: Text('Progress', style: TextStyle(fontWeight: FontWeight.w500))),
+                    const Expanded(
+                        child: Text('Progress',
+                            style: TextStyle(fontWeight: FontWeight.w500))),
                     Text('${progress.toInt()}%'),
                   ],
                 ),
                 const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: LinearProgressIndicator(value: progress / 100, minHeight: 10, backgroundColor: Colors.grey.shade300, color: AppColors.purple),
+                  child: LinearProgressIndicator(
+                      value: progress / 100,
+                      minHeight: 10,
+                      backgroundColor: Colors.grey.shade300,
+                      color: AppColors.purple),
                 ),
                 if (progress == 0)
                   Align(
@@ -1537,7 +1943,8 @@ class CourseCard extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(top: 12),
                       child: FilledButton(
-                        onPressed: () => showMsg(context, 'Enrollment flow can be connected next.'),
+                        onPressed: () => showMsg(
+                            context, 'Enrollment flow can be connected next.'),
                         child: const Text('Enroll Now'),
                       ),
                     ),
@@ -1561,13 +1968,20 @@ class CourseFormPage extends StatefulWidget {
 
 class _CourseFormPageState extends State<CourseFormPage> {
   final formKey = GlobalKey<FormState>();
-  late final titleController = TextEditingController(text: widget.initial?['title'] ?? '');
-  late final descriptionController = TextEditingController(text: widget.initial?['description'] ?? '');
-  late final instructorController = TextEditingController(text: widget.initial?['instructor'] ?? '');
-  late final durationController = TextEditingController(text: widget.initial?['duration'] ?? '');
-  late final categoryController = TextEditingController(text: widget.initial?['category'] ?? '');
-  late final imageUrlController = TextEditingController(text: widget.initial?['image_url'] ?? '');
-  late final progressController = TextEditingController(text: '${widget.initial?['progress'] ?? 0}');
+  late final titleController =
+      TextEditingController(text: widget.initial?['title'] ?? '');
+  late final descriptionController =
+      TextEditingController(text: widget.initial?['description'] ?? '');
+  late final instructorController =
+      TextEditingController(text: widget.initial?['instructor'] ?? '');
+  late final durationController =
+      TextEditingController(text: widget.initial?['duration'] ?? '');
+  late final categoryController =
+      TextEditingController(text: widget.initial?['category'] ?? '');
+  late final imageUrlController =
+      TextEditingController(text: widget.initial?['image_url'] ?? '');
+  late final progressController =
+      TextEditingController(text: '${widget.initial?['progress'] ?? 0}');
   bool saving = false;
 
   Future<void> save() async {
@@ -1595,7 +2009,8 @@ class _CourseFormPageState extends State<CourseFormPage> {
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -1605,7 +2020,8 @@ class _CourseFormPageState extends State<CourseFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.softPink,
-      appBar: AppBar(leading: const BackButton(), backgroundColor: Colors.transparent),
+      appBar: AppBar(
+          leading: const BackButton(), backgroundColor: Colors.transparent),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 18),
         child: Form(
@@ -1613,42 +2029,98 @@ class _CourseFormPageState extends State<CourseFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('course Title', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              AppTextField(controller: titleController, label: '', hint: 'Course title', validator: requiredValidator),
+              const Text('course Title',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              AppTextField(
+                  controller: titleController,
+                  label: '',
+                  hint: 'Course title',
+                  validator: requiredValidator),
               const SizedBox(height: 12),
-              const Text('Description', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              AppTextField(controller: descriptionController, label: '', hint: 'Description', maxLines: 3, validator: (value) => requiredValidator(value, min: 10)),
+              const Text('Description',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              AppTextField(
+                  controller: descriptionController,
+                  label: '',
+                  hint: 'Description',
+                  maxLines: 3,
+                  validator: (value) => requiredValidator(value, min: 10)),
               const SizedBox(height: 12),
-              const Text('Instructor', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              AppTextField(controller: instructorController, label: '', hint: 'Instructor', validator: requiredValidator),
+              const Text('Instructor',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              AppTextField(
+                  controller: instructorController,
+                  label: '',
+                  hint: 'Instructor',
+                  validator: requiredValidator),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Duration', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)), AppTextField(controller: durationController, label: '', hint: '6 week', validator: requiredValidator)])),
+                  Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        const Text('Duration',
+                            style: TextStyle(
+                                fontSize: 26, fontWeight: FontWeight.bold)),
+                        AppTextField(
+                            controller: durationController,
+                            label: '',
+                            hint: '6 week',
+                            validator: requiredValidator)
+                      ])),
                   const SizedBox(width: 12),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Category', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)), AppTextField(controller: categoryController, label: '', hint: 'Leadership', validator: requiredValidator)])),
+                  Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        const Text('Category',
+                            style: TextStyle(
+                                fontSize: 26, fontWeight: FontWeight.bold)),
+                        AppTextField(
+                            controller: categoryController,
+                            label: '',
+                            hint: 'Leadership',
+                            validator: requiredValidator)
+                      ])),
                 ],
               ),
               const SizedBox(height: 12),
-              const Text('Image URL', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              AppTextField(controller: imageUrlController, label: '', hint: 'https://....'),
+              const Text('Image URL',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              AppTextField(
+                  controller: imageUrlController,
+                  label: '',
+                  hint: 'https://....'),
               const SizedBox(height: 12),
-              const Text('Progress (%)', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              AppTextField(controller: progressController, label: '', hint: '0', validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Required';
-                final p = int.tryParse(value.trim());
-                if (p == null || p < 0 || p > 100) return 'Enter a number between 0 and 100';
-                return null;
-              }),
+              const Text('Progress (%)',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              AppTextField(
+                  controller: progressController,
+                  label: '',
+                  hint: '0',
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty)
+                      return 'Required';
+                    final p = int.tryParse(value.trim());
+                    if (p == null || p < 0 || p > 100)
+                      return 'Enter a number between 0 and 100';
+                    return null;
+                  }),
               const SizedBox(height: 18),
               Row(
                 children: [
-                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel'))),
+                  Expanded(
+                      child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'))),
                   const SizedBox(width: 16),
                   Expanded(
                     child: FilledButton(
                       onPressed: saving ? null : save,
-                      child: Text(widget.initial == null ? 'Create Course' : 'Update Course'),
+                      child: Text(widget.initial == null
+                          ? 'Create Course'
+                          : 'Update Course'),
                     ),
                   ),
                 ],
@@ -1687,7 +2159,8 @@ class _CommunityPageState extends State<CommunityPage> {
       posts = List<Map<String, dynamic>>.from(await Api.get('/posts'));
       mentors = List<Map<String, dynamic>>.from(await Api.get('/mentors'));
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -1702,9 +2175,11 @@ class _CommunityPageState extends State<CommunityPage> {
         backgroundColor: AppColors.purple,
         onPressed: () async {
           if (showPosts) {
-            await Navigator.push(context, MaterialPageRoute(builder: (_) => const PostFormPage()));
+            await Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const PostFormPage()));
           } else {
-            await Navigator.push(context, MaterialPageRoute(builder: (_) => const MentorFormPage()));
+            await Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const MentorFormPage()));
           }
           load();
         },
@@ -1718,16 +2193,26 @@ class _CommunityPageState extends State<CommunityPage> {
             Row(
               children: [
                 Expanded(
-                  child: ChoiceChip(label: const Text('Community Posts'), selected: showPosts, onSelected: (_) => setState(() => showPosts = true)),
+                  child: ChoiceChip(
+                      label: const Text('Community Posts'),
+                      selected: showPosts,
+                      onSelected: (_) => setState(() => showPosts = true)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ChoiceChip(label: const Text('Mentors'), selected: !showPosts, onSelected: (_) => setState(() => showPosts = false)),
+                  child: ChoiceChip(
+                      label: const Text('Mentors'),
+                      selected: !showPosts,
+                      onSelected: (_) => setState(() => showPosts = false)),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            if (loading) const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator())),
+            if (loading)
+              const Center(
+                  child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator())),
             ...list.map((item) {
               if (showPosts) {
                 return CommunityPostCard(post: item, onChanged: load);
@@ -1744,7 +2229,8 @@ class _CommunityPageState extends State<CommunityPage> {
 class CommunityPostCard extends StatelessWidget {
   final Map<String, dynamic> post;
   final Future<void> Function() onChanged;
-  const CommunityPostCard({super.key, required this.post, required this.onChanged});
+  const CommunityPostCard(
+      {super.key, required this.post, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -1759,8 +2245,19 @@ class CommunityPostCard extends StatelessWidget {
               children: [
                 const CircleAvatar(child: Icon(Icons.person)),
                 const SizedBox(width: 10),
-                Expanded(child: Text(post['title'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-                IconButton(onPressed: () async { await Navigator.push(context, MaterialPageRoute(builder: (_) => PostFormPage(initial: post))); await onChanged(); }, icon: const Icon(Icons.edit_outlined)),
+                Expanded(
+                    child: Text(post['title'] ?? '',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold))),
+                IconButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => PostFormPage(initial: post)));
+                      await onChanged();
+                    },
+                    icon: const Icon(Icons.edit_outlined)),
                 IconButton(
                   onPressed: () async {
                     await Api.delete('/posts/${post['id']}');
@@ -1770,7 +2267,8 @@ class CommunityPostCard extends StatelessWidget {
                 ),
               ],
             ),
-            Text(post['category'] ?? '', style: const TextStyle(color: AppColors.purple)),
+            Text(post['category'] ?? '',
+                style: const TextStyle(color: AppColors.purple)),
             const SizedBox(height: 8),
             Text(post['content'] ?? ''),
           ],
@@ -1790,21 +2288,46 @@ class MentorCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        minVerticalPadding: 12,
+        dense: true,
         leading: const CircleAvatar(child: Icon(Icons.school)),
         title: Text(mentor['name'] ?? ''),
-        subtitle: Text('${mentor['expertise'] ?? ''}\n${mentor['email'] ?? ''}'),
+        subtitle:
+            Text('${mentor['expertise'] ?? ''}\n${mentor['email'] ?? ''}'),
         isThreeLine: true,
-        trailing: Column(
-          children: [
-            IconButton(onPressed: () async { await Navigator.push(context, MaterialPageRoute(builder: (_) => MentorFormPage(initial: mentor))); await onChanged(); }, icon: const Icon(Icons.edit_outlined)),
-            IconButton(
-              onPressed: () async {
-                await Api.delete('/mentors/${mentor['id']}');
-                await onChanged();
-              },
-              icon: const Icon(Icons.delete_outline),
-            ),
-          ],
+        trailing: SizedBox(
+          width: 44,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: () async {
+                  await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => MentorFormPage(initial: mentor)));
+                  await onChanged();
+                },
+                icon: const Icon(Icons.edit_outlined),
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                onPressed: () async {
+                  await Api.delete('/mentors/${mentor['id']}');
+                  await onChanged();
+                },
+                icon: const Icon(Icons.delete_outline),
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1821,15 +2344,20 @@ class PostFormPage extends StatefulWidget {
 
 class _PostFormPageState extends State<PostFormPage> {
   final formKey = GlobalKey<FormState>();
-  late final titleController = TextEditingController(text: widget.initial?['title'] ?? '');
-  late final categoryController = TextEditingController(text: widget.initial?['category'] ?? '');
-  late final contentController = TextEditingController(text: widget.initial?['content'] ?? '');
+  late final titleController =
+      TextEditingController(text: widget.initial?['title'] ?? '');
+  late final categoryController =
+      TextEditingController(text: widget.initial?['category'] ?? '');
+  late final contentController =
+      TextEditingController(text: widget.initial?['content'] ?? '');
 
   Future<void> save() async {
     if (!formKey.currentState!.validate()) return;
     final data = {
       'title': titleController.text.trim(),
-      'category': categoryController.text.trim().isEmpty ? 'General' : categoryController.text.trim(),
+      'category': categoryController.text.trim().isEmpty
+          ? 'General'
+          : categoryController.text.trim(),
       'content': contentController.text.trim(),
     };
     try {
@@ -1841,24 +2369,39 @@ class _PostFormPageState extends State<PostFormPage> {
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.initial == null ? 'Create Post' : 'Update Post')),
+      appBar: AppBar(
+          title: Text(widget.initial == null ? 'Create Post' : 'Update Post')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: formKey,
           child: Column(
             children: [
-              AppTextField(controller: titleController, label: 'Title', validator: requiredValidator),
+              AppTextField(
+                  controller: titleController,
+                  label: 'Title',
+                  validator: requiredValidator),
               AppTextField(controller: categoryController, label: 'Category'),
-              AppTextField(controller: contentController, label: 'Content', maxLines: 5, validator: (value) => requiredValidator(value, min: 5)),
-              SizedBox(width: double.infinity, child: FilledButton(onPressed: save, child: Text(widget.initial == null ? 'Create Post' : 'Update Post'))),
+              AppTextField(
+                  controller: contentController,
+                  label: 'Content',
+                  maxLines: 5,
+                  validator: (value) => requiredValidator(value, min: 5)),
+              SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                      onPressed: save,
+                      child: Text(widget.initial == null
+                          ? 'Create Post'
+                          : 'Update Post'))),
             ],
           ),
         ),
@@ -1877,12 +2420,18 @@ class MentorFormPage extends StatefulWidget {
 
 class _MentorFormPageState extends State<MentorFormPage> {
   final formKey = GlobalKey<FormState>();
-  late final nameController = TextEditingController(text: widget.initial?['name'] ?? '');
-  late final expertiseController = TextEditingController(text: widget.initial?['expertise'] ?? '');
-  late final emailController = TextEditingController(text: widget.initial?['email'] ?? '');
-  late final phoneController = TextEditingController(text: widget.initial?['phone'] ?? '');
-  late final availabilityController = TextEditingController(text: widget.initial?['availability'] ?? '');
-  late final descriptionController = TextEditingController(text: widget.initial?['description'] ?? '');
+  late final nameController =
+      TextEditingController(text: widget.initial?['name'] ?? '');
+  late final expertiseController =
+      TextEditingController(text: widget.initial?['expertise'] ?? '');
+  late final emailController =
+      TextEditingController(text: widget.initial?['email'] ?? '');
+  late final phoneController =
+      TextEditingController(text: widget.initial?['phone'] ?? '');
+  late final availabilityController =
+      TextEditingController(text: widget.initial?['availability'] ?? '');
+  late final descriptionController =
+      TextEditingController(text: widget.initial?['description'] ?? '');
 
   Future<void> save() async {
     if (!formKey.currentState!.validate()) return;
@@ -1891,7 +2440,9 @@ class _MentorFormPageState extends State<MentorFormPage> {
       'expertise': expertiseController.text.trim(),
       'email': emailController.text.trim(),
       'phone': phoneController.text.trim(),
-      'availability': availabilityController.text.trim().isEmpty ? 'Weekdays' : availabilityController.text.trim(),
+      'availability': availabilityController.text.trim().isEmpty
+          ? 'Weekdays'
+          : availabilityController.text.trim(),
       'description': descriptionController.text.trim(),
     };
     try {
@@ -1903,27 +2454,51 @@ class _MentorFormPageState extends State<MentorFormPage> {
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.initial == null ? 'Add Mentor' : 'Update Mentor')),
+      appBar: AppBar(
+          title: Text(widget.initial == null ? 'Add Mentor' : 'Update Mentor')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: formKey,
           child: Column(
             children: [
-              AppTextField(controller: nameController, label: 'Mentor Name', validator: requiredValidator),
-              AppTextField(controller: expertiseController, label: 'Expertise', validator: requiredValidator),
-              AppTextField(controller: emailController, label: 'Email', validator: emailValidator),
-              AppTextField(controller: phoneController, label: 'Phone', validator: phoneValidator),
-              AppTextField(controller: availabilityController, label: 'Availability'),
-              AppTextField(controller: descriptionController, label: 'Description', maxLines: 4),
-              SizedBox(width: double.infinity, child: FilledButton(onPressed: save, child: Text(widget.initial == null ? 'Create Mentor' : 'Update Mentor'))),
+              AppTextField(
+                  controller: nameController,
+                  label: 'Mentor Name',
+                  validator: requiredValidator),
+              AppTextField(
+                  controller: expertiseController,
+                  label: 'Expertise',
+                  validator: requiredValidator),
+              AppTextField(
+                  controller: emailController,
+                  label: 'Email',
+                  validator: emailValidator),
+              AppTextField(
+                  controller: phoneController,
+                  label: 'Phone',
+                  validator: phoneValidator),
+              AppTextField(
+                  controller: availabilityController, label: 'Availability'),
+              AppTextField(
+                  controller: descriptionController,
+                  label: 'Description',
+                  maxLines: 4),
+              SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                      onPressed: save,
+                      child: Text(widget.initial == null
+                          ? 'Create Mentor'
+                          : 'Update Mentor'))),
             ],
           ),
         ),
@@ -1953,10 +2528,13 @@ class _LegalPageState extends State<LegalPage> {
   Future<void> load() async {
     setState(() => loading = true);
     try {
-      rights = List<Map<String, dynamic>>.from(await Api.get('/complaints/legal-rights'));
-      complaints = List<Map<String, dynamic>>.from(await Api.get('/complaints'));
+      rights = List<Map<String, dynamic>>.from(
+          await Api.get('/complaints/legal-rights'));
+      complaints =
+          List<Map<String, dynamic>>.from(await Api.get('/complaints'));
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -1969,7 +2547,8 @@ class _LegalPageState extends State<LegalPage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.purple,
         onPressed: () async {
-          await Navigator.push(context, MaterialPageRoute(builder: (_) => const ComplaintFormPage()));
+          await Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const ComplaintFormPage()));
           load();
         },
         child: const Icon(Icons.add, color: Colors.black),
@@ -1979,30 +2558,49 @@ class _LegalPageState extends State<LegalPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text('Legal Rights', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text('Legal Rights',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             ...rights.map((right) => Card(
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ListTile(
-                    leading: const Icon(Icons.verified_user_outlined, color: AppColors.purple),
+                    leading: const Icon(Icons.verified_user_outlined,
+                        color: AppColors.purple),
                     title: Text(right['title'] ?? ''),
                     subtitle: Text(right['description'] ?? ''),
                   ),
                 )),
             const SizedBox(height: 18),
-            const Text('Complaints', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text('Complaints',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             if (loading) const Center(child: CircularProgressIndicator()),
             ...complaints.map((complaint) => Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
                     title: Text(complaint['subject'] ?? ''),
-                    subtitle: Text('${complaint['complaint_type'] ?? ''} • ${complaint['status'] ?? ''}\n${complaint['description'] ?? ''}'),
+                    subtitle: Text(
+                        '${complaint['complaint_type'] ?? ''} • ${complaint['status'] ?? ''}\n${complaint['description'] ?? ''}'),
                     isThreeLine: true,
                     trailing: Wrap(
                       children: [
-                        IconButton(onPressed: () async { await Navigator.push(context, MaterialPageRoute(builder: (_) => ComplaintFormPage(initial: complaint))); load(); }, icon: const Icon(Icons.edit_outlined)),
-                        IconButton(onPressed: () async { await Api.delete('/complaints/${complaint['id']}'); load(); }, icon: const Icon(Icons.delete_outline)),
+                        IconButton(
+                            onPressed: () async {
+                              await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => ComplaintFormPage(
+                                          initial: complaint)));
+                              load();
+                            },
+                            icon: const Icon(Icons.edit_outlined)),
+                        IconButton(
+                            onPressed: () async {
+                              await Api.delete(
+                                  '/complaints/${complaint['id']}');
+                              load();
+                            },
+                            icon: const Icon(Icons.delete_outline)),
                       ],
                     ),
                   ),
@@ -2024,17 +2622,23 @@ class ComplaintFormPage extends StatefulWidget {
 
 class _ComplaintFormPageState extends State<ComplaintFormPage> {
   final formKey = GlobalKey<FormState>();
-  late final subjectController = TextEditingController(text: widget.initial?['subject'] ?? '');
-  late final typeController = TextEditingController(text: widget.initial?['complaint_type'] ?? '');
-  late final statusController = TextEditingController(text: widget.initial?['status'] ?? 'Submitted');
-  late final descriptionController = TextEditingController(text: widget.initial?['description'] ?? '');
+  late final subjectController =
+      TextEditingController(text: widget.initial?['subject'] ?? '');
+  late final typeController =
+      TextEditingController(text: widget.initial?['complaint_type'] ?? '');
+  late final statusController =
+      TextEditingController(text: widget.initial?['status'] ?? 'Submitted');
+  late final descriptionController =
+      TextEditingController(text: widget.initial?['description'] ?? '');
 
   Future<void> save() async {
     if (!formKey.currentState!.validate()) return;
     final data = {
       'subject': subjectController.text.trim(),
       'complaint_type': typeController.text.trim(),
-      'status': statusController.text.trim().isEmpty ? 'Submitted' : statusController.text.trim(),
+      'status': statusController.text.trim().isEmpty
+          ? 'Submitted'
+          : statusController.text.trim(),
       'description': descriptionController.text.trim(),
     };
     try {
@@ -2046,25 +2650,45 @@ class _ComplaintFormPageState extends State<ComplaintFormPage> {
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.initial == null ? 'File a Complaint' : 'Update Complaint')),
+      appBar: AppBar(
+          title: Text(widget.initial == null
+              ? 'File a Complaint'
+              : 'Update Complaint')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: formKey,
           child: Column(
             children: [
-              AppTextField(controller: subjectController, label: 'Subject', validator: requiredValidator),
-              AppTextField(controller: typeController, label: 'Complaint Type', validator: requiredValidator),
+              AppTextField(
+                  controller: subjectController,
+                  label: 'Subject',
+                  validator: requiredValidator),
+              AppTextField(
+                  controller: typeController,
+                  label: 'Complaint Type',
+                  validator: requiredValidator),
               AppTextField(controller: statusController, label: 'Status'),
-              AppTextField(controller: descriptionController, label: 'Description', maxLines: 5, validator: (value) => requiredValidator(value, min: 10)),
-              SizedBox(width: double.infinity, child: FilledButton(onPressed: save, child: Text(widget.initial == null ? 'Submit Complaint' : 'Update Complaint'))),
+              AppTextField(
+                  controller: descriptionController,
+                  label: 'Description',
+                  maxLines: 5,
+                  validator: (value) => requiredValidator(value, min: 10)),
+              SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                      onPressed: save,
+                      child: Text(widget.initial == null
+                          ? 'Submit Complaint'
+                          : 'Update Complaint'))),
             ],
           ),
         ),
@@ -2079,7 +2703,13 @@ class AppTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final int maxLines;
   final String? hint;
-  const AppTextField({super.key, required this.controller, required this.label, this.validator, this.maxLines = 1, this.hint});
+  const AppTextField(
+      {super.key,
+      required this.controller,
+      required this.label,
+      this.validator,
+      this.maxLines = 1,
+      this.hint});
 
   @override
   Widget build(BuildContext context) {
@@ -2095,8 +2725,13 @@ class AppTextField extends StatelessWidget {
           filled: true,
           fillColor: Colors.white.withOpacity(0.88),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Colors.black45)),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: AppColors.purple, width: 1.6)),
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Colors.black45)),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide:
+                  const BorderSide(color: AppColors.purple, width: 1.6)),
         ),
       ),
     );
