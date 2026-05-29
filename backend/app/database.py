@@ -1,18 +1,43 @@
 import os
+import logging
 from pathlib import Path
-
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import StaticPool
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "sherise.db"
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH}")
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH}")
 
-engine_kwargs = {}
-if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
-    engine_kwargs["connect_args"] = {"check_same_thread": False}
+logger.info(f"Database URL: {DATABASE_URL}")
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, **engine_kwargs)
+engine_kwargs = {
+    "echo": False,
+}
+
+# SQLite specific configuration
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {
+        "check_same_thread": False,
+        "timeout": 30,
+    }
+    engine_kwargs["poolclass"] = StaticPool
+    
+    # Enable WAL mode for SQLite
+    @event.listens_for(create_engine(DATABASE_URL, **engine_kwargs), "connect")
+    def set_sqlite_pragma(dbapi_conn, connection_record):
+        try:
+            cursor = dbapi_conn.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+        except Exception as e:
+            logger.error(f"Error setting SQLite pragmas: {e}")
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 class Base(DeclarativeBase):
@@ -22,5 +47,9 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception as e:
+        logger.error(f"Database error: {e}")
+        db.rollback()
+        raise
     finally:
         db.close()
