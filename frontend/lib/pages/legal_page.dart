@@ -186,7 +186,7 @@ class _ComplaintFormPageState extends State<ComplaintFormPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: complaintTypeController.text.isEmpty
+                initialValue: complaintTypeController.text.isEmpty
                     ? 'Harassment'
                     : complaintTypeController.text,
                 items: ['Harassment', 'Discrimination', 'Abuse', 'Other']
@@ -205,7 +205,7 @@ class _ComplaintFormPageState extends State<ComplaintFormPage> {
               const SizedBox(height: 16),
               const Text('Subject',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              TextField(
+              TextFormField(
                 controller: subjectController,
                 decoration: const InputDecoration(
                     hintText: 'Brief subject of complaint',
@@ -215,7 +215,7 @@ class _ComplaintFormPageState extends State<ComplaintFormPage> {
               const SizedBox(height: 16),
               const Text('Description',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              TextField(
+              TextFormField(
                 controller: descriptionController,
                 maxLines: 6,
                 decoration: const InputDecoration(
