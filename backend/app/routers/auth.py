@@ -48,8 +48,9 @@ def register(payload: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already exists")
     except Exception as e:
         db.rollback()
-        logger.error(f"Error during registration: {type(e).__name__}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Registration failed")
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        logger.error(f"Error during registration: {error_msg}", exc_info=True)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.post("/login")
 def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
@@ -75,8 +76,9 @@ def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error during login: {type(e).__name__}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Login failed")
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        logger.error(f"Error during login: {error_msg}", exc_info=True)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.get("/me")
 def me(current_user: models.User = Depends(get_current_user)):
@@ -89,8 +91,9 @@ def me(current_user: models.User = Depends(get_current_user)):
             "created_at": current_user.created_at
         }
     except Exception as e:
-        logger.error(f"Error in /me endpoint: {type(e).__name__}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to get user info")
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        logger.error(f"Error in /me endpoint: {error_msg}", exc_info=True)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.delete("/deactivate")
 def deactivate(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
@@ -100,5 +103,6 @@ def deactivate(db: Session = Depends(get_db), current_user: models.User = Depend
         return {"message": "Account deactivated successfully"}
     except Exception as e:
         db.rollback()
-        logger.error(f"Error during deactivation: {type(e).__name__}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Deactivation failed")
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        logger.error(f"Error during deactivation: {error_msg}", exc_info=True)
+        raise HTTPException(status_code=500, detail=error_msg)
