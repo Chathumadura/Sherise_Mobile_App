@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const apiBase = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'https://sherise-mobile-app.onrender.com',
+  defaultValue: kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000',
 );
 
 void main() {
@@ -490,8 +490,10 @@ class _RegisterPageState extends State<RegisterPage> {
       });
       if (!mounted) return;
       showMsg(context, 'Account created. Please sign in.');
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (_) => const LoginPage()), (_) => false);
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+          (_) => false);
     } catch (e) {
       if (mounted)
         showMsg(context, e.toString().replaceFirst('Exception: ', ''));
@@ -2298,10 +2300,7 @@ class CommunityPostCard extends StatelessWidget {
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(e
-                                  .toString()
-                                  .replaceFirst('Exception: ', ''))),
+                          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
                         );
                       }
                     }
@@ -2364,9 +2363,7 @@ class MentorCard extends StatelessWidget {
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text(
-                                e.toString().replaceFirst('Exception: ', ''))),
+                        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
                       );
                     }
                   }

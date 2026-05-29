@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const apiBase = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'https://sherise-mobile-app.onrender.com',
+  defaultValue: kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000',
 );
 
 class Api {
