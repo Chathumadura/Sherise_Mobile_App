@@ -489,22 +489,28 @@ class _RegisterPageState extends State<RegisterPage> {
         'password': passwordController.text,
       });
 
-      // Save auth and user data from registration response
-      if (res != null && res['access_token'] != null) {
-        await Api.saveAuth(
-            res['access_token'], Map<String, dynamic>.from(res['user'] ?? {}));
+      // Check if registration was successful
+      if (res != null && res is Map && res.containsKey('access_token')) {
+        final token = res['access_token'];
+        final userMap = Map<String, dynamic>.from(res['user'] ?? {});
+        
+        // Save auth token and user data
+        await Api.saveAuth(token, userMap);
+        
         if (!mounted) return;
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
+        // Always redirect to MainShell (home page) after successful registration
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const MainShell()),
+            (_) => false);
       } else {
-        showMsg(context, 'Registration successful. Please sign in.');
-        if (!mounted) return;
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (_) => const LoginPage()), (_) => false);
+        // Should not happen as backend returns token on success
+        showMsg(context, 'Registration error: No token received');
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
