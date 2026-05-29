@@ -24,9 +24,12 @@ if DATABASE_URL.startswith("sqlite"):
         "timeout": 30,
     }
     engine_kwargs["poolclass"] = StaticPool
-    
-    # Enable WAL mode for SQLite
-    @event.listens_for(create_engine(DATABASE_URL, **engine_kwargs), "connect")
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
+
+# Enable WAL mode for SQLite
+if DATABASE_URL.startswith("sqlite"):
+    @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_conn, connection_record):
         try:
             cursor = dbapi_conn.cursor()
@@ -35,8 +38,6 @@ if DATABASE_URL.startswith("sqlite"):
             cursor.close()
         except Exception as e:
             logger.error(f"Error setting SQLite pragmas: {e}")
-
-engine = create_engine(DATABASE_URL, **engine_kwargs)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

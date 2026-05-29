@@ -347,7 +347,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => loading = true);
     try {
       final res = await Api.post('/auth/login', {
-        'email': emailController.text.trim(),
+        'email': emailController.text.trim().toLowerCase(),
         'password': passwordController.text,
       });
       await Api.saveAuth(
@@ -483,15 +483,25 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!formKey.currentState!.validate()) return;
     setState(() => loading = true);
     try {
-      await Api.post('/auth/register', {
+      final res = await Api.post('/auth/register', {
         'name': nameController.text.trim(),
-        'email': emailController.text.trim(),
-        'password': passwordController.text.trim(),
+        'email': emailController.text.trim().toLowerCase(),
+        'password': passwordController.text,
       });
-      if (!mounted) return;
-      showMsg(context, 'Account created. Please sign in.');
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (_) => const LoginPage()), (_) => false);
+
+      // Save auth and user data from registration response
+      if (res != null && res['access_token'] != null) {
+        await Api.saveAuth(
+            res['access_token'], Map<String, dynamic>.from(res['user'] ?? {}));
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
+      } else {
+        showMsg(context, 'Registration successful. Please sign in.');
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (_) => const LoginPage()), (_) => false);
+      }
     } catch (e) {
       if (mounted)
         showMsg(context, e.toString().replaceFirst('Exception: ', ''));

@@ -49,12 +49,23 @@ class Api {
   }
 
   static dynamic _decode(http.Response response) {
-    final body = response.body.isEmpty ? null : jsonDecode(response.body);
-    if (response.statusCode >= 200 && response.statusCode < 300) return body;
-    final msg = body is Map && body['detail'] != null
-        ? body['detail'].toString()
-        : 'Request failed';
-    throw Exception(msg);
+    try {
+      final body = response.body.isEmpty ? null : jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) return body;
+
+      if (body is Map && body['detail'] != null) {
+        final detail = body['detail'];
+        if (detail is List) {
+          final errors = (detail as List).map((e) => e['msg'] ?? e).join(', ');
+          throw Exception(errors);
+        }
+        throw Exception(detail.toString());
+      }
+      throw Exception('Request failed: ${response.statusCode}');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Failed to parse response: $e');
+    }
   }
 
   static Future<dynamic> get(String path) async => _decode(
