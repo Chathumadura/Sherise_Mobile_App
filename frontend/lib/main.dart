@@ -266,6 +266,7 @@ class _AuthGatePageState extends State<AuthGatePage> {
     super.initState();
     Future(() async {
       await Api.loadToken();
+      if (kDebugMode) print('Loaded token in AuthGatePage: ${Api.token}');
       if (mounted) setState(() => loading = false);
     });
   }
@@ -275,6 +276,7 @@ class _AuthGatePageState extends State<AuthGatePage> {
     if (loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    if (kDebugMode) print('Navigating: Api.token == null ? LoginPage : MainShell');
     return Api.token == null ? const LoginPage() : const MainShell();
   }
 }
@@ -350,14 +352,27 @@ class _LoginPageState extends State<LoginPage> {
         'email': emailController.text.trim().toLowerCase(),
         'password': passwordController.text,
       });
+      
+      if (kDebugMode) print('✅ Login response received');
+      
       await Api.saveAuth(
           res['access_token'], Map<String, dynamic>.from(res['user']));
+      
+      if (kDebugMode) print('✅ Token saved, navigating to MainShell');
+      
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
+      
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const MainShell()),
+          (route) => false);
+          
+      if (kDebugMode) print('✅ Navigation to MainShell completed');
     } catch (e) {
-      if (mounted)
+      if (mounted) {
+        if (kDebugMode) print('❌ Login error: $e');
         showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -489,27 +504,58 @@ class _RegisterPageState extends State<RegisterPage> {
         'password': passwordController.text,
       });
 
-      // Check if registration was successful
-      if (res != null && res is Map && res.containsKey('access_token')) {
-        final token = res['access_token'];
-        final userMap = Map<String, dynamic>.from(res['user'] ?? {});
-        
-        // Save auth token and user data
-        await Api.saveAuth(token, userMap);
-        
-        if (!mounted) return;
-        // Always redirect to MainShell (home page) after successful registration
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const MainShell()),
-            (_) => false);
-      } else {
-        // Should not happen as backend returns token on success
-        showMsg(context, 'Registration error: No token received');
+      if (kDebugMode) print('✅ Register response received: $res');
+      
+      // Validate response
+      if (res == null || res is! Map) {
+        throw Exception('Invalid response format from server');
       }
+      
+      if (!res.containsKey('access_token') || res['access_token'] == null) {
+        throw Exception('Server did not return authentication token');
+      }
+
+      if (!res.containsKey('user') || res['user'] == null) {
+        throw Exception('Server did not return user data');
+      }
+
+      final token = res['access_token'] as String;
+      final userMap = Map<String, dynamic>.from(res['user'] as Map);
+      
+      if (kDebugMode) print('✅ Valid token received: ${token.substring(0, 20)}...');
+      if (kDebugMode) print('✅ User data: ${userMap['email']}');
+      
+      // Save auth data
+      await Api.saveAuth(token, userMap);
+      
+      // Verify token was saved
+      if (Api.token != token) {
+        throw Exception('Failed to save authentication token');
+      }
+      
+      if (kDebugMode) print('✅ Token saved. Api.token is now: ${Api.token?.substring(0, 20)}...');
+      
+      if (!mounted) return;
+      
+      if (kDebugMode) print('✅ Navigating to MainShell...');
+      
+      // Navigate to MainShell (Home Page) - must be main thread
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MainShell()),
+        (route) => false, // Remove all previous routes
+      );
+      
+      if (kDebugMode) print('✅ Navigation call completed');
+      
     } catch (e) {
+      if (kDebugMode) print('❌ Register error: $e');
       if (mounted) {
-        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+        final errorMsg = e.toString()
+            .replaceFirst('Exception: ', '')
+            .replaceFirst('FormatException: ', '');
+        if (kDebugMode) print('❌ Showing error dialog: $errorMsg');
+        showMsg(context, errorMsg);
       }
     } finally {
       if (mounted) setState(() => loading = false);
