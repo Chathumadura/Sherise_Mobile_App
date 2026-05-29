@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,21 +51,27 @@ class Api {
 
   static dynamic _decode(http.Response response) {
     try {
+      developer.log('API Response: ${response.statusCode} - ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+      
       final body = response.body.isEmpty ? null : jsonDecode(response.body);
       if (response.statusCode >= 200 && response.statusCode < 300) return body;
 
       if (body is Map && body['detail'] != null) {
         final detail = body['detail'];
         if (detail is List) {
-          final errors = (detail as List).map((e) => e['msg'] ?? e).join(', ');
+          final errors = (detail as List).map((e) {
+            if (e is Map) return e['msg'] ?? e.toString();
+            return e.toString();
+          }).join(', ');
           throw Exception(errors);
         }
         throw Exception(detail.toString());
       }
-      throw Exception('Request failed: ${response.statusCode}');
+      throw Exception('Server error: ${response.statusCode}');
     } catch (e) {
+      developer.log('API Error: ${e.toString()}');
       if (e is Exception) rethrow;
-      throw Exception('Failed to parse response: $e');
+      throw Exception('Network error: $e');
     }
   }
 
