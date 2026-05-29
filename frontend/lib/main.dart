@@ -541,12 +541,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (!mounted) return;
 
-      if (kDebugMode) print('✅ Navigating to MainShell...');
+      if (kDebugMode) print('✅ Navigating to LoginPage...');
 
-      // Navigate to MainShell (Home Page) - must be main thread
+      // Navigate to LoginPage - must be main thread
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const MainShell()),
+        MaterialPageRoute(builder: (context) => const LoginPage()),
         (route) => false, // Remove all previous routes
       );
 
