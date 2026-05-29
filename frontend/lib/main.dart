@@ -490,10 +490,8 @@ class _RegisterPageState extends State<RegisterPage> {
       });
       if (!mounted) return;
       showMsg(context, 'Account created. Please sign in.');
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-          (_) => false);
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (_) => const LoginPage()), (_) => false);
     } catch (e) {
       if (mounted)
         showMsg(context, e.toString().replaceFirst('Exception: ', ''));
@@ -2300,7 +2298,10 @@ class CommunityPostCard extends StatelessWidget {
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                          SnackBar(
+                              content: Text(e
+                                  .toString()
+                                  .replaceFirst('Exception: ', ''))),
                         );
                       }
                     }
@@ -2363,7 +2364,9 @@ class MentorCard extends StatelessWidget {
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                        SnackBar(
+                            content: Text(
+                                e.toString().replaceFirst('Exception: ', ''))),
                       );
                     }
                   }
