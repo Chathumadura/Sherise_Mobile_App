@@ -15,18 +15,30 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
+# Primary: Argon2 for new registrations
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+# Fallback: Bcrypt for old passwords
+pwd_context_bcrypt = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        return pwd_context.verify(plain_password, hashed_password)
+        # Try Argon2 first (new format)
+        if hashed_password.startswith("$argon2"):
+            return pwd_context.verify(plain_password, hashed_password)
+        # Fallback to bcrypt (old format)
+        elif hashed_password.startswith("$2"):
+            return pwd_context_bcrypt.verify(plain_password, hashed_password)
+        else:
+            logger.warning(f"Unknown password hash format")
+            return False
     except Exception as e:
         logger.error(f"Password verification error: {e}")
         return False
 
 def get_password_hash(password: str) -> str:
     try:
+        # Always use Argon2 for new passwords
         return pwd_context.hash(password)
     except Exception as e:
         logger.error(f"Password hashing error: {e}")
