@@ -83,3 +83,15 @@ def delete_profile_photo(db: Session = Depends(get_db), current_user: models.Use
         profile.profile_photo = None
         db.commit()
     return {"message": "Profile photo removed"}
+
+@router.delete("")
+def delete_account(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    """Delete user account and all associated data (posts, alerts, contacts, etc.)"""
+    user = db.query(models.User).filter(models.User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Cascade delete is handled by SQLAlchemy relationships, just delete the user
+    db.delete(user)
+    db.commit()
+    return {"message": "Account deleted successfully"}

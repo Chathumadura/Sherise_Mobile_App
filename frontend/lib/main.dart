@@ -276,7 +276,8 @@ class _AuthGatePageState extends State<AuthGatePage> {
     if (loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    if (kDebugMode) print('Navigating: Api.token == null ? LoginPage : MainShell');
+    if (kDebugMode)
+      print('Navigating: Api.token == null ? LoginPage : MainShell');
     return Api.token == null ? const LoginPage() : const MainShell();
   }
 }
@@ -352,21 +353,21 @@ class _LoginPageState extends State<LoginPage> {
         'email': emailController.text.trim().toLowerCase(),
         'password': passwordController.text,
       });
-      
+
       if (kDebugMode) print('✅ Login response received');
-      
+
       await Api.saveAuth(
           res['access_token'], Map<String, dynamic>.from(res['user']));
-      
+
       if (kDebugMode) print('✅ Token saved, navigating to MainShell');
-      
+
       if (!mounted) return;
-      
+
       Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const MainShell()),
           (route) => false);
-          
+
       if (kDebugMode) print('✅ Navigation to MainShell completed');
     } catch (e) {
       if (mounted) {
@@ -505,12 +506,12 @@ class _RegisterPageState extends State<RegisterPage> {
       });
 
       if (kDebugMode) print('✅ Register response received: $res');
-      
+
       // Validate response
       if (res == null || res is! Map) {
         throw Exception('Invalid response format from server');
       }
-      
+
       if (!res.containsKey('access_token') || res['access_token'] == null) {
         throw Exception('Server did not return authentication token');
       }
@@ -521,37 +522,40 @@ class _RegisterPageState extends State<RegisterPage> {
 
       final token = res['access_token'] as String;
       final userMap = Map<String, dynamic>.from(res['user'] as Map);
-      
-      if (kDebugMode) print('✅ Valid token received: ${token.substring(0, 20)}...');
+
+      if (kDebugMode)
+        print('✅ Valid token received: ${token.substring(0, 20)}...');
       if (kDebugMode) print('✅ User data: ${userMap['email']}');
-      
+
       // Save auth data
       await Api.saveAuth(token, userMap);
-      
+
       // Verify token was saved
       if (Api.token != token) {
         throw Exception('Failed to save authentication token');
       }
-      
-      if (kDebugMode) print('✅ Token saved. Api.token is now: ${Api.token?.substring(0, 20)}...');
-      
+
+      if (kDebugMode)
+        print(
+            '✅ Token saved. Api.token is now: ${Api.token?.substring(0, 20)}...');
+
       if (!mounted) return;
-      
+
       if (kDebugMode) print('✅ Navigating to MainShell...');
-      
+
       // Navigate to MainShell (Home Page) - must be main thread
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const MainShell()),
         (route) => false, // Remove all previous routes
       );
-      
+
       if (kDebugMode) print('✅ Navigation call completed');
-      
     } catch (e) {
       if (kDebugMode) print('❌ Register error: $e');
       if (mounted) {
-        final errorMsg = e.toString()
+        final errorMsg = e
+            .toString()
             .replaceFirst('Exception: ', '')
             .replaceFirst('FormatException: ', '');
         if (kDebugMode) print('❌ Showing error dialog: $errorMsg');
@@ -1019,6 +1023,43 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> deleteAccount() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+            'Are you sure you want to delete your account? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      await Api.delete('/profile');
+      await Api.logout();
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (mounted)
+        showMsg(context, e.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loading)
@@ -1094,6 +1135,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 value: p['occupation'] ?? ''),
             InfoCard(
                 icon: Icons.info_outline, title: 'Bio', value: p['bio'] ?? ''),
+            const SizedBox(height: 20),
+            FilledButton.tonalIcon(
+              onPressed: deleteAccount,
+              icon: const Icon(Icons.delete_forever, color: Colors.red),
+              label: const Text('Delete Account',
+                  style: TextStyle(color: Colors.red)),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red.shade50,
+              ),
+            ),
           ],
         ),
       ),
