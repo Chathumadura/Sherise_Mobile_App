@@ -54,10 +54,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Global exception: {type(exc).__name__}: {str(exc)}", exc_info=True)
+    error_detail = f"{type(exc).__name__}: {str(exc)}"
+    logger.error(f"Unhandled exception: {error_detail}", exc_info=True)
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error"},
+        content={"detail": error_detail},
     )
 
 # Mount static files
