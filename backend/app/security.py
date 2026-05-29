@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from .database import get_db
 from . import models
+import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -18,20 +19,24 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
+def _hash_password_sha256(password: str) -> str:
+    """Pre-hash password with SHA256 to bypass bcrypt's 72-byte limit"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        # Bcrypt security limit: passwords truncated to 72 bytes maximum
-        truncated_password = plain_password[:72]
-        return pwd_context.verify(truncated_password, hashed_password)
+        # Pre-hash with SHA256, then verify with bcrypt
+        sha256_hash = _hash_password_sha256(plain_password)
+        return pwd_context.verify(sha256_hash, hashed_password)
     except Exception as e:
         logger.error(f"Password verification error: {e}")
         return False
 
 def get_password_hash(password: str) -> str:
     try:
-        # Bcrypt limit: 72 bytes max
-        truncated_password = password[:72]
-        return pwd_context.hash(truncated_password)
+        # Pre-hash with SHA256, then hash with bcrypt
+        sha256_hash = _hash_password_sha256(password)
+        return pwd_context.hash(sha256_hash)
     except Exception as e:
         logger.error(f"Password hashing error: {e}")
         raise
