@@ -12,25 +12,45 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", status_code=201)
 def register(payload: schemas.UserCreate, db: Session = Depends(get_db)):
+    logger.info(f"Registration request: name={payload.name}, email={payload.email}")
     try:
+        # Step 1: Check if email exists
+        logger.info("Step 1: Checking if email exists...")
         exists = db.query(models.User).filter(models.User.email == payload.email.lower()).first()
         if exists:
+            logger.warning(f"Email already registered: {payload.email}")
             raise HTTPException(status_code=400, detail="Email already registered")
         
+        # Step 2: Hash password
+        logger.info("Step 2: Hashing password...")
+        hashed_pwd = get_password_hash(payload.password)
+        logger.info("Password hashed successfully")
+        
+        # Step 3: Create user
+        logger.info("Step 3: Creating user...")
         user = models.User(
             name=payload.name.strip(),
             email=payload.email.lower(),
-            hashed_password=get_password_hash(payload.password)
+            hashed_password=hashed_pwd
         )
         db.add(user)
         db.commit()
         db.refresh(user)
+        logger.info(f"User created: {user.id}")
         
+        # Step 4: Create profile
+        logger.info("Step 4: Creating profile...")
         profile = models.Profile(user_id=user.id, full_name=user.name)
         db.add(profile)
         db.commit()
+        logger.info(f"Profile created for user {user.id}")
         
+        # Step 5: Create token
+        logger.info("Step 5: Creating JWT token...")
         token = create_access_token({"sub": str(user.id)})
+        logger.info("Token created successfully")
+        
+        logger.info(f"Registration successful for {user.email}")
         return {
             "access_token": token,
             "token_type": "bearer",
@@ -44,12 +64,13 @@ def register(payload: schemas.UserCreate, db: Session = Depends(get_db)):
         raise
     except IntegrityError as e:
         db.rollback()
-        logger.error(f"Integrity error during registration: {e}")
+        error_msg = f"Database integrity error: {str(e)}"
+        logger.error(error_msg)
         raise HTTPException(status_code=400, detail="Email already exists")
     except Exception as e:
         db.rollback()
         error_msg = f"{type(e).__name__}: {str(e)}"
-        logger.error(f"Error during registration: {error_msg}", exc_info=True)
+        logger.error(f"Registration error: {error_msg}", exc_info=True)
         raise HTTPException(status_code=500, detail=error_msg)
 
 @router.post("/login")
