@@ -20,7 +20,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        # Bcrypt limit: 72 bytes max
+        # Bcrypt security limit: passwords truncated to 72 bytes maximum
         truncated_password = plain_password[:72]
         return pwd_context.verify(truncated_password, hashed_password)
     except Exception as e:
