@@ -51,8 +51,9 @@ class Api {
 
   static dynamic _decode(http.Response response) {
     try {
-      developer.log('API Response: ${response.statusCode} - ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
-      
+      developer.log(
+          'API Response: ${response.statusCode} - ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+
       final body = response.body.isEmpty ? null : jsonDecode(response.body);
       if (response.statusCode >= 200 && response.statusCode < 300) return body;
 
