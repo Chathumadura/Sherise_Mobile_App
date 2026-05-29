@@ -76,6 +76,11 @@ class Api {
     return Map<String, dynamic>.from(jsonDecode(raw));
   }
 
+  static Future<void> saveUser(Map<String, dynamic> user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user', jsonEncode(user));
+  }
+
   static Future<void> logout() async {
     token = null;
     final prefs = await SharedPreferences.getInstance();
@@ -332,8 +337,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController(text: 'demo@sherise.com');
-  final passwordController = TextEditingController(text: '123456');
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
   bool loading = false;
   bool obscure = true;
 
@@ -478,16 +483,17 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!formKey.currentState!.validate()) return;
     setState(() => loading = true);
     try {
-      final res = await Api.post('/auth/register', {
+      await Api.post('/auth/register', {
         'name': nameController.text.trim(),
         'email': emailController.text.trim(),
         'password': passwordController.text.trim(),
       });
-      await Api.saveAuth(
-          res['access_token'], Map<String, dynamic>.from(res['user']));
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
+      showMsg(context, 'Account created. Please sign in.');
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+          (_) => false);
     } catch (e) {
       if (mounted)
         showMsg(context, e.toString().replaceFirst('Exception: ', ''));
@@ -666,7 +672,27 @@ class _MainShellState extends State<MainShell> {
   }
 
   Future<void> loadUser() async {
-    currentUser = await Api.loadSavedUser();
+    final savedUser = await Api.loadSavedUser() ?? {};
+    Map<String, dynamic> mergedUser = Map<String, dynamic>.from(savedUser);
+    try {
+      final profile = Map<String, dynamic>.from(await Api.get('/profile'));
+      mergedUser = {
+        ...savedUser,
+        'name': profile['full_name'] ?? savedUser['name'],
+        'full_name': profile['full_name'],
+        'phone': profile['phone'],
+        'address': profile['address'],
+        'occupation': profile['occupation'],
+        'bio': profile['bio'],
+        'profile_photo': profile['profile_photo'],
+      };
+      await Api.saveUser(mergedUser);
+    } catch (_) {
+      if (savedUser.isNotEmpty) {
+        mergedUser = Map<String, dynamic>.from(savedUser);
+      }
+    }
+    currentUser = mergedUser.isEmpty ? null : mergedUser;
     if (mounted) setState(() {});
   }
 
@@ -688,8 +714,16 @@ class _MainShellState extends State<MainShell> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const CircleAvatar(
-                radius: 14, child: Icon(Icons.person, size: 16)),
+            icon: CircleAvatar(
+              radius: 14,
+              backgroundColor: Colors.white,
+              backgroundImage: currentUser?['profile_photo'] != null
+                  ? NetworkImage(currentUser!['profile_photo'])
+                  : null,
+              child: currentUser?['profile_photo'] == null
+                  ? const Icon(Icons.person, size: 16)
+                  : null,
+            ),
             onPressed: () async {
               await Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const ProfilePage()));
@@ -2260,8 +2294,16 @@ class CommunityPostCard extends StatelessWidget {
                     icon: const Icon(Icons.edit_outlined)),
                 IconButton(
                   onPressed: () async {
-                    await Api.delete('/posts/${post['id']}');
-                    await onChanged();
+                    try {
+                      await Api.delete('/posts/${post['id']}');
+                      await onChanged();
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                        );
+                      }
+                    }
                   },
                   icon: const Icon(Icons.delete_outline),
                 ),
@@ -2315,8 +2357,16 @@ class MentorCard extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () async {
-                  await Api.delete('/mentors/${mentor['id']}');
-                  await onChanged();
+                  try {
+                    await Api.delete('/mentors/${mentor['id']}');
+                    await onChanged();
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                      );
+                    }
+                  }
                 },
                 icon: const Icon(Icons.delete_outline),
                 iconSize: 20,
